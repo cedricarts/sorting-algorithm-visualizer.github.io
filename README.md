@@ -1,4 +1,4 @@
-#Sorting Algorithm Visualizer
+# Sorting Algorithm Visualizer
 
 This is a comprehensive, single-file web application that visualizes 15 different sorting algorithms. It is designed as an educational tool to help users understand how each algorithm works by watching it sort an array in real-time.
 
@@ -10,51 +10,51 @@ Its intended purpose is purely educational—to serve as a learning tool for vis
 
 Features
 
-15 Sorting Algorithms: Includes a wide variety of algorithms, from common to more obscure.
+- 15 Sorting Algorithms: Includes a wide variety of algorithms, from common to more obscure.
 
-Interactive Controls: Adjust the array size and sorting speed.
+-Interactive Controls: Adjust the array size and sorting speed.
 
-Real-time Visualization: Color-coded bars show comparisons, swaps, and sorted elements.
+- Real-time Visualization: Color-coded bars show comparisons, swaps, and sorted elements.
 
-Performance Timer: See how long each algorithm takes to run.
+- Performance Timer: See how long each algorithm takes to run.
 
-Audio Feedback: Hear the algorithms at work with sounds for comparisons and swaps.
+- Audio Feedback: Hear the algorithms at work with sounds for comparisons and swaps.
 
-Pseudocode Display: See the pseudocode for the selected algorithm update in real-time.
+- Pseudocode Display: See the pseudocode for the selected algorithm update in real-time.
 
-Single-File Application: The entire project (HTML, CSS, and JavaScript) is contained in one file.
+- Single-File Application: The entire project (HTML, CSS, and JavaScript) is contained in one file.
 
-Algorithms Included
+# Algorithms Included:
 
-Bubble Sort
+  - Bubble Sort
 
-Selection Sort
+  - Selection Sort
 
-Insertion Sort
+  - Insertion Sort
 
-Merge Sort
+  - Merge Sort
 
-Quick Sort
+  - Quick Sort
 
-Heap Sort
+  - Heap Sort
 
-Shell Sort
+  - Shell Sort
 
-Cocktail Shaker Sort
+  - Cocktail Shaker Sort
 
-Comb Sort
+  - Comb Sort
 
-Gnome Sort
+  - Gnome Sort
 
-Radix Sort (LSD)
+  - Radix Sort (LSD)
 
-Counting Sort
+  - Counting Sort
 
-Bucket Sort
+  - Bucket Sort
 
-Pancake Sort
+  - Pancake Sort
 
-Bogo Sort (Warning: Very slow!)
+  - Bogo Sort (Warning: Very slow!)
 
 How to Use
 
