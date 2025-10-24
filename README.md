@@ -12,7 +12,7 @@ Features:
 
 - 15 Sorting Algorithms: Includes a wide variety of algorithms, from common to more obscure.
 
--Interactive Controls: Adjust the array size and sorting speed.
+- Interactive Controls: Adjust the array size and sorting speed.
 
 - Real-time Visualization: Color-coded bars show comparisons, swaps, and sorted elements.
 
