@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorting Algorithm Visualizer</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Tone.js for audio -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <!-- Load Inter font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom slider track */
+        input[type="range"]::-webkit-slider-runnable-track {
+            background: #374151; /* gray-700 */
+            height: 4px;
+            border-radius: 9999px;
+        }
+        input[type="range"]::-moz-range-track {
+            background: #374151; /* gray-700 */
+            height: 4px;
+            border-radius: 9999px;
+        }
+        /* Custom slider thumb */
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #3b82f6; /* blue-500 */
+            cursor: pointer;
+            margin-top: -6px; /* Center thumb on track */
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #3b82f6; /* blue-500 */
+            cursor: pointer;
+            border: 0;
+        }
+        /* Disabled state for controls */
+        :disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 min-h-screen flex flex-col items-center p-4 overflow-hidden">
+
+    <!-- Header -->
+    <h1 class="text-3xl md:text-4xl font-bold text-white mb-6 text-center">
+        Sorting Algorithm Visualizer
+    </h1>
+
+    <!-- Controls -->
+    <div id="controls" class="w-full max-w-7xl bg-gray-800 p-4 rounded-lg shadow-lg mb-6 flex flex-col md:flex-row md:items-center md:flex-wrap gap-4 md:gap-6">
+        
+        <!-- Algorithm Selection -->
+        <div class="flex-shrink-0">
+            <label for="algorithmSelect" class="block text-sm font-medium text-gray-300 mb-1">Algorithm</label>
+            <select id="algorithmSelect" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full md:w-48 p-2.5">
+                <!-- Options will be populated by JS -->
+            </select>
+        </div>
+        
+        <!-- Array Size Slider -->
+        <div class="flex-1 min-w-[150px]">
+            <label for="sizeSlider" class="block text-sm font-medium text-gray-300 mb-1">Array Size (<span id="sizeValue">50</span>)</label>
+            <input id="sizeSlider" type="range" min="5" max="150" value="50" class="w-full h-2 rounded-lg appearance-none cursor-pointer">
+        </div>
+
+        <!-- Speed Slider -->
+        <div class="flex-1 min-w-[150px]">
+            <label for="speedSlider" class="block text-sm font-medium text-gray-300 mb-1">Speed (<span id="speedValue">50</span>)</label>
+            <input id="speedSlider" type="range" min="1" max="100" value="50" class="w-full h-2 rounded-lg appearance-none cursor-pointer">
+        </div>
+        
+        <!-- Timer Display -->
+        <div class="flex-shrink-0 md:ml-4">
+            <label class="block text-sm font-medium text-gray-300 mb-1">Time Elapsed</label>
+            <div id="timerDisplay" class="text-lg font-bold text-white bg-gray-700 p-2 rounded-lg w-full md:w-32 text-center h-[42px] flex items-center justify-center">
+                0.000s
+            </div>
+        </div>
+        
+        <!-- Control Buttons -->
+        <div class="flex gap-4 md:ml-auto">
+            <button id="generateButton" class="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+                New Array
+            </button>
+            <button id="sortButton" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+                Sort!
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="w-full max-w-7xl flex flex-col md:flex-row gap-6">
+        <!-- Visualization Container -->
+        <div id="visualizerContainer" class="flex-1 h-[60vh] md:h-[70vh] bg-gray-800 rounded-lg shadow-lg p-2 flex items-end justify-center gap-px overflow-hidden">
+            <!-- Bars will be populated by JS -->
+        </div>
+
+        <!-- Pseudocode Container -->
+        <div id="pseudocodeContainer" class="w-full md:w-1/3 h-[60vh] md:h-[70vh] bg-gray-800 rounded-lg shadow-lg p-4 flex flex-col">
+            <h2 class="text-xl font-bold text-white mb-4 flex-shrink-0">Pseudocode</h2>
+            <pre class="bg-gray-900 rounded-md p-4 overflow-y-auto h-full text-gray-300 text-sm flex-1"><code id="pseudocodeContent">Select an algorithm to see the pseudocode.</code></pre>
+        </div>
+    </div>
+
+    <!-- Custom Alert Modal -->
+    <div id="alertModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-sm">
+            <h3 class="text-xl font-medium text-white mb-4">A Quick Heads-Up!</h3>
+            <p id="alertMessage" class="text-gray-300 mb-6"></p>
+            <button id="alertClose" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+                Got It
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        // === DOM Elements ===
+        const algorithmSelect = document.getElementById('algorithmSelect');
+        const sizeSlider = document.getElementById('sizeSlider');
+        const speedSlider = document.getElementById('speedSlider');
+        const sizeValue = document.getElementById('sizeValue');
+        const speedValue = document.getElementById('speedValue');
+        const generateButton = document.getElementById('generateButton');
+        const sortButton = document.getElementById('sortButton');
+        const visualizerContainer = document.getElementById('visualizerContainer');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const pseudocodeContent = document.getElementById('pseudocodeContent');
+        const controls = [algorithmSelect, sizeSlider, speedSlider, generateButton, sortButton];
+
+        // Modal Elements
+        const alertModal = document.getElementById('alertModal');
+        const alertMessage = document.getElementById('alertMessage');
+        const alertClose = document.getElementById('alertClose');
+        
+        // === State ===
+        let array = [];
+        let isSorting = false;
+        let animationSpeed = 50; // Corresponds to slider value
+        let timerInterval = null;
+        let startTime = 0;
+
+        // === Audio ===
+        let audioInitialized = false;
+        let compareSynth = null;
+        let swapSynth = null;
+        let completeSynth = null;
+
+        function initializeAudio() {
+            if (audioInitialized) return;
+            try {
+                Tone.start(); // Start audio context on user gesture
+                compareSynth = new Tone.Synth({
+                    oscillator: { type: 'sine' },
+                    volume: -12,
+                    envelope: { attack: 0.005, decay: 0.1, sustain: 0, release: 0.1 }
+                }).toDestination();
+                
+                swapSynth = new Tone.Synth({
+                    oscillator: { type: 'triangle' },
+                    volume: -12,
+                    envelope: { attack: 0.005, decay: 0.1, sustain: 0, release: 0.1 }
+                }).toDestination();
+                
+                completeSynth = new Tone.PluckSynth({
+                    volume: -6
+                }).toDestination();
+                
+                audioInitialized = true;
+            } catch (e) {
+                console.error("Failed to initialize audio:", e);
+                // We'll proceed without audio
+            }
+        }
+
+        // === Constants ===
+        const DEFAULT_COLOR = 'bg-blue-500';
+        const COMPARE_COLOR = 'bg-yellow-400';
+        const SWAP_COLOR = 'bg-red-500';
+        const PIVOT_COLOR = 'bg-purple-500';
+        const SORTED_COLOR = 'bg-green-500';
+
+        // === Pseudocode Data ===
+        const PSEUDOCODE = {
+            "Bubble Sort": `
+function bubbleSort(array):
+  n = length(array)
+  do
+    swapped = false
+    for i from 0 to n-2:
+      if array[i] > array[i+1]:
+        swap(array[i], array[i+1])
+        swapped = true
+    n = n - 1
+  while swapped
+            `,
+            "Selection Sort": `
+function selectionSort(array):
+  n = length(array)
+  for i from 0 to n-2:
+    minIndex = i
+    for j from i+1 to n-1:
+      if array[j] < array[minIndex]:
+        minIndex = j
+    if minIndex != i:
+      swap(array[i], array[minIndex])
+            `,
+            "Insertion Sort": `
+function insertionSort(array):
+  n = length(array)
+  for i from 1 to n-1:
+    key = array[i]
+    j = i - 1
+    while j >= 0 and array[j] > key:
+      array[j+1] = array[j]
+      j = j - 1
+    array[j+1] = key
+            `,
+            "Merge Sort": `
+function mergeSort(array, l, r):
+  if l >= r:
+    return
+  m = floor(l + (r - l) / 2)
+  mergeSort(array, l, m)
+  mergeSort(array, m + 1, r)
+  merge(array, l, m, r)
+
+function merge(array, l, m, r):
+  n1 = m - l + 1
+  n2 = r - m
+  L = new array[n1]
+  R = new array[n2]
+  
+  for i from 0 to n1-1: L[i] = array[l + i]
+  for j from 0 to n2-1: R[j] = array[m + 1 + j]
+
+  i = 0, j = 0, k = l
+  while i < n1 and j < n2:
+    if L[i] <= R[j]:
+      array[k] = L[i]
+      i = i + 1
+    else:
+      array[k] = R[j]
+      j = j + 1
+    k = k + 1
+
+  while i < n1: array[k] = L[i]; i++; k++;
+  while j < n2: array[k] = R[j]; j++; k++;
+            `,
+            "Quick Sort": `
+function quickSort(array, low, high):
+  if low < high:
+    pi = partition(array, low, high)
+    quickSort(array, low, pi - 1)
+    quickSort(array, pi + 1, high)
+
+function partition(array, low, high):
+  pivot = array[high]
+  i = low - 1
+  for j from low to high-1:
+    if array[j] < pivot:
+      i = i + 1
+      swap(array[i], array[j])
+  swap(array[i+1], array[high])
+  return i + 1
+            `,
+            "Heap Sort": `
+function heapSort(array):
+  n = length(array)
+  // Build max heap
+  for i from floor(n/2)-1 down to 0:
+    heapify(array, n, i)
+  
+  // Extract elements from heap
+  for i from n-1 down to 1:
+    swap(array[0], array[i])
+    heapify(array, i, 0)
+
+function heapify(array, n, i):
+  largest = i
+  l = 2*i + 1
+  r = 2*i + 2
+  
+  if l < n and array[l] > array[largest]:
+    largest = l
+  if r < n and array[r] > array[largest]:
+    largest = r
+
+  if largest != i:
+    swap(array[i], array[largest])
+    heapify(array, n, largest)
+            `,
+            "Shell Sort": `
+function shellSort(array):
+  n = length(array)
+  gap = floor(n / 2)
+  while gap > 0:
+    for i from gap to n-1:
+      temp = array[i]
+      j = i
+      while j >= gap and array[j - gap] > temp:
+        array[j] = array[j - gap]
+        j = j - gap
+      array[j] = temp
+    gap = floor(gap / 2)
+            `,
+            "Cocktail Shaker Sort": `
+function cocktailShakerSort(array):
+  swapped = true
+  start = 0
+  end = length(array) - 1
+
+  while swapped:
+    swapped = false
+    // Forward pass
+    for i from start to end-1:
+      if array[i] > array[i+1]:
+        swap(array[i], array[i+1])
+        swapped = true
+    if not swapped: break
+    
+    swapped = false
+    end = end - 1
+    
+    // Backward pass
+    for i from end-1 down to start:
+      if array[i] > array[i+1]:
+        swap(array[i], array[i+1])
+        swapped = true
+    start = start + 1
+            `,
+            "Comb Sort": `
+function combSort(array):
+  n = length(array)
+  gap = n
+  shrink = 1.3
+  swapped = true
+
+  while gap > 1 or swapped:
+    gap = max(1, floor(gap / shrink))
+    swapped = false
+    for i from 0 to n - gap - 1:
+      if array[i] > array[i + gap]:
+        swap(array[i], array[i + gap])
+        swapped = true
+            `,
+            "Gnome Sort": `
+function gnomeSort(array):
+  n = length(array)
+  index = 0
+  while index < n:
+    if index == 0:
+      index = index + 1
+    if array[index] >= array[index - 1]:
+      index = index + 1
+    else:
+      swap(array[index], array[index - 1])
+      index = index - 1
+            `,
+            "Radix Sort (LSD)": `
+function radixSort(array):
+  max = findMax(array)
+  exp = 1
+  while floor(max / exp) > 0:
+    countingSortByDigit(array, exp)
+    exp = exp * 10
+
+function countingSortByDigit(array, exp):
+  n = length(array)
+  output = new array[n]
+  count = new array[10] filled with 0
+
+  for i from 0 to n-1:
+    digit = floor(array[i] / exp) % 10
+    count[digit] = count[digit] + 1
+
+  for i from 1 to 9:
+    count[i] = count[i] + count[i - 1]
+
+  for i from n-1 down to 0:
+    digit = floor(array[i] / exp) % 10
+    output[count[digit] - 1] = array[i]
+    count[digit] = count[digit] - 1
+
+  for i from 0 to n-1:
+    array[i] = output[i]
+            `,
+            "Counting Sort": `
+function countingSort(array):
+  n = length(array)
+  max = findMax(array)
+  min = findMin(array)
+  range = max - min + 1
+  
+  count = new array[range] filled with 0
+  output = new array[n]
+
+  for i from 0 to n-1:
+    count[array[i] - min] = count[array[i] - min] + 1
+
+  for i from 1 to range-1:
+    count[i] = count[i] + count[i - 1]
+
+  for i from n-1 down to 0:
+    output[count[array[i] - min] - 1] = array[i]
+    count[array[i] - min] = count[array[i] - min] - 1
+
+  for i from 0 to n-1:
+    array[i] = output[i]
+            `,
+            "Bucket Sort": `
+function bucketSort(array, bucketSize = 5):
+  n = length(array)
+  if n == 0: return
+
+  min = findMin(array)
+  max = findMax(array)
+  
+  bucketCount = floor((max - min) / bucketSize) + 1
+  buckets = new array[bucketCount]
+  for i from 0 to bucketCount-1:
+    buckets[i] = []
+
+  for i from 0 to n-1:
+    bucketIndex = floor((array[i] - min) / bucketSize)
+    buckets[bucketIndex].push(array[i])
+
+  index = 0
+  for i from 0 to bucketCount-1:
+    // Sort each bucket (e.g., using insertionSort)
+    insertionSort(buckets[i])
+    // Concatenate results
+    for j from 0 to length(buckets[i])-1:
+      array[index] = buckets[i][j]
+      index = index + 1
+            `,
+            "Pancake Sort": `
+function pancakeSort(array):
+  n = length(array)
+  for currSize from n down to 2:
+    mi = findMaxIndex(array, currSize)
+    if mi != currSize - 1:
+      flip(array, mi)
+      flip(array, currSize - 1)
+
+function flip(array, k):
+  l = 0
+  while l < k:
+    swap(array[l], array[k])
+    l = l + 1
+    k = k - 1
+
+function findMaxIndex(array, n):
+  maxIndex = 0
+  for i from 0 to n-1:
+    if array[i] > array[maxIndex]:
+      maxIndex = i
+  return maxIndex
+            `,
+            "Bogo Sort (Slow!)": `
+function bogoSort(array):
+  while not isSorted(array):
+    shuffle(array)
+
+function isSorted(array):
+  for i from 0 to length(array)-2:
+    if array[i] > array[i+1]:
+      return false
+  return true
+
+function shuffle(array):
+  // Fisher-Yates shuffle
+  for i from length(array)-1 down to 1:
+    j = randomInteger(0, i)
+    swap(array[i], array[j])
+            `
+        };
+
+        // === 15 Sorting Algorithms ===
+        // Each function is async to allow for 'await sleep()'
+        // They operate on the global 'array' and use helper functions to update the DOM
+
+        async function bubbleSort() {
+            let n = array.length;
+            let swapped;
+            do {
+                swapped = false;
+                for (let i = 0; i < n - 1; i++) {
+                    if (isSorting === false) return; // Check for stop
+                    await highlight([i, i + 1], COMPARE_COLOR);
+                    if (array[i] > array[i + 1]) {
+                        await swapVisual(i, i + 1);
+                        swapped = true;
+                    }
+                    await unhighlight([i, i + 1]);
+                }
+                setBarColor(n - 1, SORTED_COLOR);
+                n--;
+            } while (swapped);
+            // Color any remaining bars
+            for(let i = 0; i < n; i++) setBarColor(i, SORTED_COLOR);
+        }
+
+        async function selectionSort() {
+            let n = array.length;
+            for (let i = 0; i < n - 1; i++) {
+                let minIndex = i;
+                setBarColor(i, PIVOT_COLOR); // Mark current "minimum"
+                for (let j = i + 1; j < n; j++) {
+                    if (isSorting === false) return;
+                    await highlight([j], COMPARE_COLOR);
+                    if (array[j] < array[minIndex]) {
+                        if(minIndex !== i) setBarColor(minIndex, DEFAULT_COLOR); // Unmark old min
+                        minIndex = j;
+                        setBarColor(minIndex, PIVOT_COLOR); // Mark new min
+                    } else {
+                        await unhighlight([j]);
+                    }
+                }
+                if (minIndex !== i) {
+                    await swapVisual(i, minIndex);
+                }
+                setBarColor(i, SORTED_COLOR);
+            }
+            setBarColor(n - 1, SORTED_COLOR);
+        }
+
+        async function insertionSort() {
+            let n = array.length;
+            setBarColor(0, SORTED_COLOR); // First element is sorted
+            for (let i = 1; i < n; i++) {
+                if (isSorting === false) return;
+                let key = array[i];
+                let j = i - 1;
+                
+                // Highlight the key being inserted
+                await highlight([i], COMPARE_COLOR);
+
+                while (j >= 0 && array[j] > key) {
+                    if (isSorting === false) return;
+                    // Shift element to the right
+                    await setBarValue(j + 1, array[j]);
+                    setBarColor(j + 1, SORTED_COLOR);
+                    setBarColor(j, COMPARE_COLOR); // Highlight comparison
+                    await sleep();
+                    j = j - 1;
+                }
+                // Insert the key
+                await setBarValue(j + 1, key);
+
+                // Color the sorted part
+                for(let k = 0; k <= i; k++) setBarColor(k, SORTED_COLOR);
+            }
+        }
+        
+        async function mergeSort() {
+            await mergeSortRecursive(0, array.length - 1);
+        }
+
+        async function mergeSortRecursive(l, r) {
+            if (l >= r) return;
+            if (isSorting === false) return;
+            
+            const m = Math.floor(l + (r - l) / 2);
+            await mergeSortRecursive(l, m);
+            await mergeSortRecursive(m + 1, r);
+            await merge(l, m, r);
+        }
+
+        async function merge(l, m, r) {
+            if (isSorting === false) return;
+            let n1 = m - l + 1;
+            let n2 = r - m;
+
+            let L = new Array(n1);
+            let R = new Array(n2);
+
+            for (let i = 0; i < n1; i++) L[i] = array[l + i];
+            for (let j = 0; j < n2; j++) R[j] = array[m + 1 + j];
+
+            let i = 0, j = 0, k = l;
+
+            while (i < n1 && j < n2) {
+                if (isSorting === false) return;
+                await highlight([l + i, m + 1 + j], COMPARE_COLOR);
+                if (L[i] <= R[j]) {
+                    await setBarValue(k, L[i]);
+                    i++;
+                } else {
+                    await setBarValue(k, R[j]);
+                    j++;
+                }
+                setBarColor(k, SORTED_COLOR);
+                k++;
+            }
+
+            while (i < n1) {
+                if (isSorting === false) return;
+                await setBarValue(k, L[i]);
+                setBarColor(k, SORTED_COLOR);
+                i++;
+                k++;
+            }
+            while (j < n2) {
+                if (isSorting === false) return;
+                await setBarValue(k, R[j]);
+                setBarColor(k, SORTED_COLOR);
+                j++;
+                k++;
+            }
+        }
+        
+        async function quickSort() {
+            await quickSortRecursive(0, array.length - 1);
+            await finishAnimation(); // Final green sweep
+        }
+
+        async function quickSortRecursive(low, high) {
+            if (low < high) {
+                if (isSorting === false) return;
+                let pi = await partition(low, high);
+                await quickSortRecursive(low, pi - 1);
+                await quickSortRecursive(pi + 1, high);
+            }
+        }
+
+        async function partition(low, high) {
+            if (isSorting === false) return high;
+            let pivot = array[high];
+            setBarColor(high, PIVOT_COLOR);
+            let i = (low - 1); // Index of smaller element
+
+            for (let j = low; j < high; j++) {
+                if (isSorting === false) return high;
+                await highlight([j], COMPARE_COLOR);
+                if (array[j] < pivot) {
+                    i++;
+                    await swapVisual(i, j);
+                } else {
+                    await unhighlight([j]);
+                }
+            }
+            await swapVisual(i + 1, high);
+            setBarColor(i + 1, SORTED_COLOR);
+            return (i + 1);
+        }
+
+        async function heapSort() {
+            let n = array.length;
+            
+            // Build max heap
+            for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
+                if (isSorting === false) return;
+                await heapify(n, i);
+            }
+
+            // One by one extract an element from heap
+            for (let i = n - 1; i > 0; i--) {
+                if (isSorting === false) return;
+                await swapVisual(0, i);
+                setBarColor(i, SORTED_COLOR);
+                await heapify(i, 0); // Call max heapify on the reduced heap
+            }
+            setBarColor(0, SORTED_COLOR);
+        }
+
+        async function heapify(n, i) {
+            if (isSorting === false) return;
+            let largest = i; // Initialize largest as root
+            let l = 2 * i + 1; // left = 2*i + 1
+            let r = 2 * i + 2; // right = 2*i + 2
+
+            const toHighlight = [i];
+            if (l < n) toHighlight.push(l);
+            if (r < n) toHighlight.push(r);
+            await highlight(toHighlight, COMPARE_COLOR);
+
+            if (l < n && array[l] > array[largest]) largest = l;
+            if (r < n && array[r] > array[largest]) largest = r;
+
+            await unhighlight(toHighlight);
+            
+            if (largest !== i) {
+                await swapVisual(i, largest);
+                await heapify(n, largest); // Recursively heapify the affected sub-tree
+            }
+        }
+        
+        async function shellSort() {
+            let n = array.length;
+            for (let gap = Math.floor(n / 2); gap > 0; gap = Math.floor(gap / 2)) {
+                for (let i = gap; i < n; i += 1) {
+                    if (isSorting === false) return;
+                    let temp = array[i];
+                    let j;
+                    await highlight([i], COMPARE_COLOR);
+                    for (j = i; j >= gap && array[j - gap] > temp; j -= gap) {
+                        if (isSorting === false) return;
+                        await highlight([j, j - gap], COMPARE_COLOR);
+                        await setBarValue(j, array[j - gap]);
+                        await unhighlight([j, j-gap]);
+                    }
+                    await setBarValue(j, temp);
+                }
+            }
+            await finishAnimation();
+        }
+
+        async function cocktailShakerSort() {
+            let swapped = true;
+            let start = 0;
+            let end = array.length - 1;
+
+            while (swapped) {
+                if (isSorting === false) return;
+                swapped = false;
+                // Forward pass (like bubble sort)
+                for (let i = start; i < end; ++i) {
+                    if (isSorting === false) return;
+                    await highlight([i, i + 1], COMPARE_COLOR);
+                    if (array[i] > array[i + 1]) {
+                        await swapVisual(i, i + 1);
+                        swapped = true;
+                    }
+                    await unhighlight([i, i + 1]);
+                }
+                setBarColor(end, SORTED_COLOR);
+                if (!swapped) break;
+                swapped = false;
+                end = end - 1;
+                
+                // Backward pass
+                for (let i = end - 1; i >= start; --i) {
+                    if (isSorting === false) return;
+                    await highlight([i, i + 1], COMPARE_COLOR);
+                    if (array[i] > array[i + 1]) {
+                        await swapVisual(i, i + 1);
+                        swapped = true;
+                    }
+                    await unhighlight([i, i + 1]);
+                }
+                setBarColor(start, SORTED_COLOR);
+                start = start + 1;
+            }
+        }
+
+        async function combSort() {
+            let n = array.length;
+            let gap = n;
+            const shrink = 1.3;
+            let swapped = true;
+
+            while (gap > 1 || swapped) {
+                if (isSorting === false) return;
+                gap = Math.max(1, Math.floor(gap / shrink));
+                swapped = false;
+                for (let i = 0; i + gap < n; i++) {
+                    if (isSorting === false) return;
+                    await highlight([i, i + gap], COMPARE_COLOR);
+                    if (array[i] > array[i + gap]) {
+                        await swapVisual(i, i + gap);
+                        swapped = true;
+                    }
+                    await unhighlight([i, i + gap]);
+                }
+            }
+            await finishAnimation();
+        }
+
+        async function gnomeSort() {
+            let index = 0;
+            let n = array.length;
+            while (index < n) {
+                if (isSorting === false) return;
+                if (index === 0) {
+                    index++;
+                }
+                await highlight([index, index - 1], COMPARE_COLOR);
+                if (array[index] >= array[index - 1]) {
+                    await unhighlight([index, index - 1]);
+                    index++;
+                } else {
+                    await swapVisual(index, index - 1);
+                    index--;
+                }
+            }
+            await finishAnimation();
+        }
+        
+        async function radixSort() {
+            let max = Math.max(...array);
+            for (let exp = 1; Math.floor(max / exp) > 0; exp *= 10) {
+                if (isSorting === false) return;
+                await countingSortForRadix(exp);
+            }
+            await finishAnimation();
+        }
+
+        async function countingSortForRadix(exp) {
+            let n = array.length;
+            let output = new Array(n).fill(0);
+            let count = new Array(10).fill(0);
+
+            // Store count of occurrences
+            for (let i = 0; i < n; i++) {
+                if (isSorting === false) return;
+                let digit = Math.floor(array[i] / exp) % 10;
+                count[digit]++;
+            }
+            
+            // Change count[i] so that count[i] now contains actual
+            // position of this digit in output[]
+            for (let i = 1; i < 10; i++) {
+                count[i] += count[i - 1];
+            }
+            
+            // Build the output array
+            for (let i = n - 1; i >= 0; i--) {
+                if (isSorting === false) return;
+                let digit = Math.floor(array[i] / exp) % 10;
+                await highlight([i], COMPARE_COLOR);
+                output[count[digit] - 1] = array[i];
+                count[digit]--;
+                await unhighlight([i]);
+            }
+
+            // Copy the output array to array[], so that array[] now
+            // contains sorted numbers according to current digit
+            for (let i = 0; i < n; i++) {
+                if (isSorting === false) return;
+                await setBarValue(i, output[i]);
+                setBarColor(i, `hsl(${exp*20}, 70%, 50%)`); // Color based on pass
+            }
+        }
+        
+        async function countingSort() {
+            let n = array.length;
+            let max = Math.max(...array);
+            let min = Math.min(...array);
+            let range = max - min + 1;
+            
+            let count = new Array(range).fill(0);
+            let output = new Array(n).fill(0);
+
+            // Store count of each character
+            for (let i = 0; i < n; i++) {
+                if (isSorting === false) return;
+                await highlight([i], COMPARE_COLOR);
+                count[array[i] - min]++;
+                await unhighlight([i]);
+            }
+            
+            // Store cumulative count
+            for (let i = 1; i < range; i++) {
+                count[i] += count[i - 1];
+            }
+
+            // Build output array
+            for (let i = n - 1; i >= 0; i--) {
+                if (isSorting === false) return;
+                await highlight([i], COMPARE_COLOR);
+                output[count[array[i] - min] - 1] = array[i];
+                count[array[i] - min]--;
+                await unhighlight([i]);
+            }
+            
+            // Copy to main array
+            for (let i = 0; i < n; i++) {
+                if (isSorting === false) return;
+                await setBarValue(i, output[i]);
+                setBarColor(i, SORTED_COLOR);
+            }
+        }
+
+        async function bucketSort() {
+            let n = array.length;
+            if (n <= 0) return;
+
+            // 1) Create n empty buckets
+            let max = Math.max(...array);
+            let min = Math.min(...array);
+            let bucketSize = 5; // Use a fixed size or calculate
+            let bucketCount = Math.floor((max - min) / bucketSize) + 1;
+            let buckets = new Array(bucketCount);
+            for (let i = 0; i < bucketCount; i++) {
+                buckets[i] = [];
+            }
+
+            // 2) Put array elements in different buckets
+            for (let i = 0; i < n; i++) {
+                if (isSorting === false) return;
+                let bucketIndex = Math.floor((array[i] - min) / bucketSize);
+                await highlight([i], PIVOT_COLOR);
+                buckets[bucketIndex].push(array[i]);
+                await unhighlight([i]);
+            }
+
+            // 3) Sort individual buckets (using insertion sort)
+            let index = 0;
+            for (let i = 0; i < bucketCount; i++) {
+                if (isSorting === false) return;
+                // Simple sort, no visualization for sub-sort
+                buckets[i].sort((a, b) => a - b); 
+                
+                // 4) Concatenate all buckets
+                for (let j = 0; j < buckets[i].length; j++) {
+                    if (isSorting === false) return;
+                    await setBarValue(index, buckets[i][j]);
+                    setBarColor(index, SORTED_COLOR);
+                    index++;
+                }
+            }
+        }
+
+        async function pancakeSort() {
+            let n = array.length;
+            for (let currSize = n; currSize > 1; --currSize) {
+                if (isSorting === false) return;
+                // Find index of the maximum element in arr[0..currSize-1]
+                let mi = await findMax(currSize);
+
+                // Move the maximum element to end of current array
+                if (mi !== currSize - 1) {
+                    // Move the maximum element to beginning
+                    if (mi !== 0) await flip(mi);
+                    // Move the maximum element to end
+                    await flip(currSize - 1);
+                }
+                setBarColor(currSize - 1, SORTED_COLOR);
+            }
+            setBarColor(0, SORTED_COLOR);
+        }
+
+        async function findMax(n) {
+            let mi = 0;
+            for (let i = 0; i < n; ++i) {
+                if (isSorting === false) return mi;
+                await highlight([i, mi], COMPARE_COLOR);
+                if (array[i] > array[mi]) {
+                    mi = i;
+                }
+                await unhighlight([i, mi]);
+            }
+            return mi;
+        }
+
+        async function flip(k) {
+            let l = 0;
+            while (l < k) {
+                if (isSorting === false) return;
+                await swapVisual(l, k);
+                l++;
+                k--;
+            }
+        }
+
+        async function bogoSort() {
+            if (array.length > 8) {
+                await showAlert("BogoSort is only enabled for arrays with 8 or fewer items. It's too slow!");
+                isSorting = false;
+                toggleControls(false);
+                return;
+            }
+
+            while (!isSorted()) {
+                if (isSorting === false) return;
+                await shuffle();
+            }
+            await finishAnimation();
+        }
+
+        function isSorted() {
+            for (let i = 0; i < array.length - 1; i++) {
+                if (array[i] > array[i + 1]) return false;
+            }
+            return true;
+        }
+
+        async function shuffle() {
+            for (let i = array.length - 1; i > 0; i--) {
+                if (isSorting === false) return;
+                const j = Math.floor(Math.random() * (i + 1));
+                await swapVisual(i, j);
+            }
+        }
+        
+        // === Algorithm Map ===
+        const ALGORITHMS = {
+            "Bubble Sort": bubbleSort,
+            "Selection Sort": selectionSort,
+            "Insertion Sort": insertionSort,
+            "Merge Sort": mergeSort,
+            "Quick Sort": quickSort,
+            "Heap Sort": heapSort,
+            "Shell Sort": shellSort,
+            "Cocktail Shaker Sort": cocktailShakerSort,
+            "Comb Sort": combSort,
+            "Gnome Sort": gnomeSort,
+            "Radix Sort (LSD)": radixSort,
+            "Counting Sort": countingSort,
+            "Bucket Sort": bucketSort,
+            "Pancake Sort": pancakeSort,
+            "Bogo Sort (Slow!)": bogoSort,
+        };
+
+        // === Visual Helpers ===
+
+        function getBar(index) {
+            return visualizerContainer.children[index];
+        }
+
+        function setBarHeight(index, value) {
+            const bar = getBar(index);
+            if(bar) bar.style.height = `${value}%`;
+        }
+
+        function setBarColor(index, colorClass) {
+            const bar = getBar(index);
+            if(bar) {
+                bar.className = 'flex-1 mx-px transition-all duration-100 ' + colorClass;
+            }
+        }
+        
+        async function setBarValue(index, value) {
+            array[index] = value;
+            setBarHeight(index, value);
+            setBarColor(index, SWAP_COLOR);
+
+            if (swapSynth && isSorting) {
+                try {
+                    const freq = (value / 100) * 500 + 200; // 200-700 Hz
+                    swapSynth.triggerAttackRelease(freq, "16n", Tone.now());
+                } catch (e) { /* fail silently */ }
+            }
+
+            await sleep();
+            setBarColor(index, DEFAULT_COLOR);
+        }
+
+        async function highlight(indices, color) {
+            if (color === COMPARE_COLOR && compareSynth && isSorting && indices.length > 0) {
+                try {
+                    const freq = (array[indices[0]] / 100) * 800 + 300; // Map 1-100 to 300-1100 Hz
+                    compareSynth.triggerAttackRelease(freq, "32n", Tone.now());
+                } catch (e) { /* fail silently */ }
+            }
+
+            for (const index of indices) {
+                setBarColor(index, color);
+            }
+            await sleep();
+        }
+
+        async function unhighlight(indices) {
+            for (const index of indices) {
+                // Only unhighlight if it's not already sorted
+                if (!getBar(index)?.classList.contains(SORTED_COLOR)) {
+                    setBarColor(index, DEFAULT_COLOR);
+                }
+            }
+        }
+
+        async function swapVisual(i, j) {
+            if (isSorting === false) return;
+            // Highlight bars being swapped
+            setBarColor(i, SWAP_COLOR);
+            setBarColor(j, SWAP_COLOR);
+
+            if (swapSynth && isSorting) {
+                try {
+                    const freq1 = (array[i] / 100) * 500 + 200; // 200-700 Hz
+                    const freq2 = (array[j] / 100) * 500 + 200;
+                    swapSynth.triggerAttackRelease(freq1, "16n", Tone.now());
+                    swapSynth.triggerAttackRelease(freq2, "16n", Tone.now() + 0.05);
+                } catch (e) { /* fail silently */ }
+            }
+
+            await sleep();
+            
+            // Swap heights
+            setBarHeight(i, array[j]);
+            setBarHeight(j, array[i]);
+
+            // Swap in array
+            [array[i], array[j]] = [array[j], array[i]];
+
+            // Revert color
+            setBarColor(i, DEFAULT_COLOR);
+            setBarColor(j, DEFAULT_COLOR);
+        }
+
+        // === Core Logic ===
+        
+        function initialize() {
+            // Populate algorithm dropdown
+            for (const name in ALGORITHMS) {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                algorithmSelect.appendChild(option);
+            }
+            
+            // Add change listener for pseudocode
+            algorithmSelect.addEventListener('change', updatePseudocode);
+            
+            // Set initial pseudocode
+            updatePseudocode();
+            
+            // Set initial slider values
+            animationSpeed = speedSlider.value;
+            speedValue.textContent = animationSpeed;
+            sizeValue.textContent = sizeSlider.value;
+
+            // Generate initial array
+            generateNewArray();
+
+            // Add event listeners
+            generateButton.addEventListener('click', generateNewArray);
+            sortButton.addEventListener('click', startSort);
+            
+            sizeSlider.addEventListener('input', () => {
+                sizeValue.textContent = sizeSlider.value;
+                generateNewArray();
+            });
+            
+            speedSlider.addEventListener('input', () => {
+                // Invert slider value so 100 is fast, 1 is slow
+                animationSpeed = 101 - speedSlider.value;
+                speedValue.textContent = speedSlider.value;
+            });
+            
+            // Modal close listener
+            alertClose.addEventListener('click', () => alertModal.classList.add('hidden'));
+        }
+
+        function generateNewArray() {
+            if (isSorting) return;
+            
+            array = [];
+            visualizerContainer.innerHTML = '';
+            const size = sizeSlider.value;
+            
+            for (let i = 0; i < size; i++) {
+                const value = Math.floor(Math.random() * 99) + 1; // Values 1-100
+                array.push(value);
+                
+                const bar = document.createElement('div');
+                bar.style.height = `${value}%`;
+                // Calculate width based on container. Use flex-1 for simplicity.
+                bar.className = 'flex-1 mx-px ' + DEFAULT_COLOR;
+                visualizerContainer.appendChild(bar);
+            }
+        }
+
+        async function startSort() {
+            if (isSorting) {
+                // Stop the sort
+                isSorting = false;
+                clearInterval(timerInterval); // Stop the interval
+                timerInterval = null;
+                timerDisplay.textContent = "0.000s"; // Reset
+                toggleControls(false);
+                sortButton.textContent = "Sort!";
+                sortButton.classList.remove('bg-red-600', 'hover:bg-red-700');
+                sortButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                // Reset array colors
+                for(let i = 0; i < array.length; i++) {
+                    setBarColor(i, DEFAULT_COLOR);
+                }
+                return;
+            }
+
+            if (!audioInitialized) {
+                initializeAudio();
+            }
+
+            isSorting = true;
+            toggleControls(true);
+            sortButton.textContent = "Stop";
+            sortButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            sortButton.classList.add('bg-red-600', 'hover:bg-red-700');
+
+            // Start Timer
+            timerDisplay.textContent = "0.000s";
+            startTime = performance.now();
+            timerInterval = setInterval(() => {
+                if (isSorting) { // Only update if sorting
+                    const elapsedTime = (performance.now() - startTime) / 1000;
+                    timerDisplay.textContent = `${elapsedTime.toFixed(3)}s`;
+                }
+            }, 100); // Update display every 100ms
+
+            const algorithmName = algorithmSelect.value;
+            const sortFunction = ALGORITHMS[algorithmName];
+
+            await sortFunction();
+            
+            if(isSorting) { // Only finish if not manually stopped
+                await finishAnimation();
+            }
+
+            // Stop timer and set final time
+            clearInterval(timerInterval);
+            timerInterval = null;
+            if (isSorting) { // Only set final time if not manually stopped
+                const finalTime = (performance.now() - startTime) / 1000;
+                timerDisplay.textContent = `${finalTime.toFixed(3)}s`;
+            }
+
+            isSorting = false;
+            toggleControls(false);
+            sortButton.textContent = "Sort!";
+            sortButton.classList.remove('bg-red-600', 'hover:bg-red-700');
+            sortButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
+        }
+
+        function toggleControls(disabled) {
+            controls.forEach(control => {
+                if (control !== sortButton) { // Exclude sort button
+                    control.disabled = disabled;
+                }
+            });
+        }
+        
+        async function finishAnimation() {
+            // Final sweep to green
+            const sweepDelay = Math.max(1, 200 / array.length); // Dynamic delay for sweep
+            const now = Tone.now();
+
+            for (let i = 0; i < array.length; i++) {
+                if(!isSorting) return; // Check for stop
+                setBarColor(i, SORTED_COLOR);
+                
+                if (completeSynth && isSorting) {
+                    try {
+                        // Play a note based on the bar's height, creating an arpeggio
+                        const freq = Tone.Frequency(array[i] + 20, "midi"); // Midi notes 21-120
+                        const startTime = now + (i * (sweepDelay / 1000));
+                        completeSynth.triggerAttackRelease(freq, "16n", startTime);
+                    } catch (e) { /* fail silently */ }
+                }
+                await sleep(sweepDelay); // A very short sleep for the sweep effect
+            }
+        }
+
+        function sleep(ms) {
+            // Use the inverted animationSpeed
+            const actualDelay = (101 - speedSlider.value) * 2;
+            return new Promise(resolve => setTimeout(resolve, ms || actualDelay));
+        }
+        
+        async function showAlert(message) {
+            alertMessage.textContent = message;
+            alertModal.classList.remove('hidden');
+            // Wait for the user to close the modal
+            return new Promise(resolve => {
+                alertClose.onclick = () => {
+                    alertModal.classList.add('hidden');
+                    resolve();
+                };
+            });
+        }
+
+        // === New Function for Pseudocode ===
+        function updatePseudocode() {
+            const algorithmName = algorithmSelect.value;
+            const code = PSEUDOCODE[algorithmName] || "Pseudocode not available.";
+            pseudocodeContent.textContent = code;
+        }
+
+        // === Start ===
+        document.addEventListener('DOMContentLoaded', initialize);
+        
+    </script>
+</body>
+</html>
+
+
