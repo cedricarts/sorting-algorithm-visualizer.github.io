@@ -29,12 +29,12 @@ Developed with AI assistance (Gemini by Google) for rapid prototyping, while the
 Focused on interactive visualization and educational clarity, demonstrating skill in frontend design, logic implementation, and user experience.
 
 # Live Demo
-
+- https://cedricarts.github.io/sorting-algorithm-visualizer
 # How to Run Locally
 Bash
 # Clone the repo
-`git clone https://github.com/cedricarts.github.io/sorting-algorithm-visualizer.git`
-`cd sorting-algorithm-visualizer`
+`git clone` https://github.com/cedricarts.github.io/sorting-algorithm-visualizer.git
+`cd` sorting-algorithm-visualizer
 
 # Open the file in your browser
 open index.html
